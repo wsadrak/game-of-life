@@ -2,68 +2,78 @@ package app;
 
 import io.ConsolePrinter;
 import io.DataReader;
-import model.Board;
+import model.Generation;
 
 public class GameController {
 	private ConsolePrinter printer = new ConsolePrinter();
-	private static final int STEPS = 100;
 	private DataReader dataReader = new DataReader();
-	private Board board;
-	public static final int TIME_BETWEEN_ITERATIONS_MS = 150;
-	public void mainLoop() throws InterruptedException {
-		int counter = 0;
+	public static final int TIME_BETWEEN_ITERATIONS_MS = 250;
 
-//		printer.print("Witaj w Game of Life");
-
-		// 1. wczytaj dane od u¿ytkownika
-		 board = createBoard();
-
-		// 2. stwórz pierwsz¹ generacjê
-		 board.createFirstGeneration();
-		 
-		 
-		// 3. zapêtl
-		while (true) {
-			counter++;
-//			printer.print("Generacja " + counter);
-//			System.out.println("___________________________________");
-			board.print();
-			Thread.sleep(TIME_BETWEEN_ITERATIONS_MS);
-//			try {
-			board.update();
-//			} catch(ArrayIndexOutOfBoundsException e) {
-//				sys
-//			}
-		}
-
-
+	public void mainLoop() {
+		Generation generation = createGeneration();
+		int moves = readMoves();
+		playGameOfLife(moves, generation);
 	}
 
-	private Board createBoard() {
+	private Generation createGeneration() {
 		int rows = 0;
 		int cols = 0;
-		boolean readingComplete = false;
+		boolean creatingComplete = false;
 
-		while (!readingComplete) {
-
-//			try {
-//				printer.print("Podaj liczbê wierszy: ");
-//				rows = dataReader.readInt();
-//				printer.print("Podaj liczbê kolumn: ");
-//				cols = dataReader.readInt();
-//				board = new Board(rows, cols);
-//				readingComplete = true;
-//
-//				// osobny wyj¹tek dla liczb ujemnych dopisaæ
-//			} catch (NumberFormatException e) {
-//				System.err.println("nieprawid³owa liczba");
-//			}
-			
-			board = new Board();
-			readingComplete = true;
+		while (!creatingComplete) {
+			try {
+				printer.print("Enter the number of rows (bigger than 0)");
+				rows = dataReader.readInt();
+				printer.print("Enter the number of colums (bigger than 0)");
+				cols = dataReader.readInt();
+				creatingComplete = true;
+			} catch (NumberFormatException e) {
+				System.err.println("Incorrect input, please try again\n");
+			}
 		}
-		return board;
+		return new Generation(rows, cols);
 	}
 
+	private void playGameOfLife(int howManySteps, Generation generation) {
+		int counter = 0;
+		while (counter <= howManySteps) {
+			draw(generation);
+			stopTime();
+			update(generation);
+			counter++;
+		}
+	}
+
+	private void draw(Generation generation) {
+		printer.print("-------------------------------------------");
+		generation.print();
+	}
+
+	private void update(Generation generation) {
+		generation.update();
+	}
+
+	private void stopTime() {
+		try {
+			Thread.sleep(TIME_BETWEEN_ITERATIONS_MS);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+	}
+
+	private int readMoves() {
+		int steps = 0;
+		boolean readingComplete = false;
+		while (!readingComplete) {
+			try {
+				printer.print("Enter the number of generations: \n");
+				steps = dataReader.readInt();
+				readingComplete = true;
+			} catch (NumberFormatException e) {
+				System.err.println("Incorrect input, please try again\n");
+			}
+		}
+		return steps;
+	}
 
 }
